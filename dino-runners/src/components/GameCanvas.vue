@@ -4,14 +4,12 @@ import Player from './Player.vue'
 import Track from './Track.vue'
 import Obstacles from './Obstacles.vue'
 import Jungle from './Jungle.vue'
-import { useGroundTexture } from '@/composables/useGroundTexture'
+import Ground from './Ground.vue'
 
 /**
  * Die 3D-Welt (Canvas). Strikt getrennt vom UI-Layer.
  * Enthält Kamera, Beleuchtung, Boden, laufende Strecke und die Spielfigur.
  */
-
-const { grass } = useGroundTexture()
 </script>
 
 <template>
@@ -24,10 +22,7 @@ const { grass } = useGroundTexture()
     <TresDirectionalLight :position="[5, 10, 5]" :intensity="1" cast-shadow />
 
     <!-- Dschungel-Boden -->
-    <TresMesh :position="[0, 0, 0]" :rotation="[-Math.PI / 2, 0, 0]" receive-shadow>
-      <TresPlaneGeometry :args="[20, 100]" />
-      <TresMeshStandardMaterial :map="grass" :color="'#ffffff'" />
-    </TresMesh>
+    <Ground />
 
     <Track />
     <Jungle />

@@ -33,8 +33,8 @@ function createGrassTexture(): Texture {
 
   // Grundfläche mit dunkelgrünem Verlauf
   const bg = ctx.createLinearGradient(0, 0, size, size)
-  bg.addColorStop(0, '#1f5e2a')
-  bg.addColorStop(1, '#2c7a34')
+  bg.addColorStop(0, '#177e28')
+  bg.addColorStop(1, '#2d5824')
   ctx.fillStyle = bg
   ctx.fillRect(0, 0, size, size)
 
@@ -79,34 +79,50 @@ function createGrassTexture(): Texture {
 
 /** Erd-/Trampelpfad-Textur: feuchte Dschungel-Erde mit Steinchen. */
 function createDirtTexture(): Texture {
-  const size = 128
+  const size = 256
   const canvas = document.createElement('canvas')
   canvas.width = size
   canvas.height = size
   const ctx = canvas.getContext('2d')!
   const rand = makeNoise(4711)
 
-  const bg = ctx.createLinearGradient(0, 0, 0, size)
-  bg.addColorStop(0, '#6b4a2b')
-  bg.addColorStop(1, '#4e3620')
-  ctx.fillStyle = bg
+  // Gleichmässiger Erd-Grundton – bewusst KEIN Verlauf, sonst entsteht beim
+  // Scrollen ein periodisches Hell/Dunkel-Banding zwischen den Kacheln.
+  ctx.fillStyle = '#5a3f26'
   ctx.fillRect(0, 0, size, size)
 
+  // Zeichnet einen Fleck nahtlos: an allen Kanten gespiegelt wiederholt, damit
+  // die Textur kachelbar ist und keine sichtbaren Nähte entstehen.
+  function speck(x: number, y: number, r: number, color: string) {
+    ctx.fillStyle = color
+    for (const ox of [-size, 0, size]) {
+      for (const oy of [-size, 0, size]) {
+        ctx.beginPath()
+        ctx.arc(x + ox, y + oy, r, 0, Math.PI * 2)
+        ctx.fill()
+      }
+    }
+  }
+
+  // Weiche Farbflecken für Tiefe/Feuchtigkeit
+  for (let i = 0; i < 400; i++) {
+    const x = rand() * size
+    const y = rand() * size
+    const r = 6 + rand() * 18
+    ctx.globalAlpha = 0.18
+    speck(x, y, r, rand() > 0.5 ? '#6f5033' : '#3d2a18')
+  }
+
+  // Feine Körnung / kleine Steinchen
+  ctx.globalAlpha = 0.5
   for (let i = 0; i < 500; i++) {
     const x = rand() * size
     const y = rand() * size
-    const r = 1 + rand() * 4
+    const r = 1 + rand() * 3
     const shade = rand()
-    ctx.fillStyle =
-      shade > 0.7
-        ? 'rgba(120,95,60,0.4)'
-        : shade > 0.4
-          ? 'rgba(50,35,20,0.4)'
-          : 'rgba(90,70,45,0.35)'
-    ctx.beginPath()
-    ctx.arc(x, y, r, 0, Math.PI * 2)
-    ctx.fill()
+    speck(x, y, r, shade > 0.7 ? '#785c3c' : shade > 0.4 ? '#2a1c10' : '#50381f')
   }
+  ctx.globalAlpha = 1
 
   const tex = new CanvasTexture(canvas)
   tex.wrapS = RepeatWrapping
