@@ -2,27 +2,43 @@
 import { onMounted, onUnmounted } from 'vue'
 import GameCanvas from '@/components/GameCanvas.vue'
 import { useGameStore } from '@/stores/game'
+import { useObstacles } from '@/composables/useObstacles'
 
 const game = useGameStore()
+const obstacles = useObstacles()
 
-// Minimale Tastatur-Anbindung zum Testen der Basis-Spielfigur.
-// (Vollständige Steuerung inkl. Swipe folgt im nächsten Schritt.)
+function restart() {
+  obstacles.reset()
+  game.startGame()
+}
+
+// Tastatur-Steuerung: Spur wechseln, springen, rollen, neu starten.
 function onKeyDown(e: KeyboardEvent) {
   switch (e.key) {
     case 'ArrowLeft':
-      game.lane = Math.max(-1, game.lane - 1)
+      game.moveLeft()
       break
     case 'ArrowRight':
-      game.lane = Math.min(1, game.lane + 1)
+      game.moveRight()
       break
     case 'ArrowUp':
     case ' ':
-      if (!game.isJumping) game.isJumping = true
+      game.jump()
+      break
+    case 'ArrowDown':
+      game.duck()
+      break
+    case 'r':
+    case 'R':
+      restart()
       break
   }
 }
 
-onMounted(() => window.addEventListener('keydown', onKeyDown))
+onMounted(() => {
+  window.addEventListener('keydown', onKeyDown)
+  restart()
+})
 onUnmounted(() => window.removeEventListener('keydown', onKeyDown))
 </script>
 
@@ -36,8 +52,19 @@ onUnmounted(() => window.removeEventListener('keydown', onKeyDown))
       <span>Score: {{ game.score }}</span>
       <span>Coins: {{ game.coins }}</span>
     </div>
+
+    <!-- Game-Over-Overlay -->
+    <div
+      v-if="game.state === 'gameover'"
+      class="flex flex-col items-center gap-2 self-center rounded-xl bg-black/60 px-8 py-6 text-center"
+    >
+      <h2 class="text-3xl font-bold">Game Over</h2>
+      <p class="text-lg">Score: {{ game.score }} · Coins: {{ game.coins }}</p>
+      <p class="text-sm opacity-80">Taste <kbd>R</kbd> für Neustart</p>
+    </div>
+
     <p class="self-center text-sm opacity-80">
-      Pfeiltasten ← → zum Wechseln der Spur · ↑ / Leertaste zum Springen
+      Pfeiltasten ← → zum Wechseln der Spur · ↑ / Leertaste zum Springen · ↓ zum Rollen
     </p>
   </div>
 </template>
