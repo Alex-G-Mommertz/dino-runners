@@ -36,7 +36,7 @@ const CONFIG: Record<ModelKind, FitConfig> = {
   // T-Rex: steht am Boden und ist groß – man rollt zwischen den Beinen durch.
   bar: { mode: 'height', size: [0, 3.4, 0], rotationY: 0, baseY: 0 },
   // Diplodocus füllt die begehbare Ellipsoid-Kuppel aus.
-  ramp: { mode: 'box', size: [2 * RAMP_RX, RAMP_RY, 2 * RAMP_RZ], rotationY: 0, baseY: 0 },
+  ramp: { mode: 'box', size: [2 * RAMP_RX, RAMP_RY, 2 * RAMP_RZ], rotationY: Math.PI, baseY: 0 },
 }
 
 const object = shallowRef<Object3D | null>(null)

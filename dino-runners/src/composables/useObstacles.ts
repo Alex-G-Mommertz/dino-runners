@@ -47,8 +47,8 @@ const JUMP_CLEAR_Y = 1.4
 // Rampe/Hügel als Ellipsoid: halbe Breite (X), Höhe (Y), halbe Länge (Z).
 // Das Höhenprofil ist analytisch, damit Visual und Kollision identisch sind.
 export const RAMP_RX = 0.9
-export const RAMP_RY = 1.6
-export const RAMP_RZ = 3
+export const RAMP_RY = 3.6
+export const RAMP_RZ = 6
 
 let entities: Entity[] | undefined
 let spawnAccumulator = 0
