@@ -37,11 +37,41 @@ function laneX(lane: number) {
         <TresMeshStandardMaterial :color="'#fde047'" :metalness="0.6" :roughness="0.3" />
       </TresMesh>
 
+      <!-- Item: Knochen (+10 Coins) -->
+      <TresGroup
+        v-else-if="e.kind === 'bone'"
+        :position="[laneX(e.lane), 1, e.z]"
+        :rotation="[0, 0, Math.PI / 4]"
+      >
+        <!-- Schaft -->
+        <TresMesh cast-shadow>
+          <TresCylinderGeometry :args="[0.08, 0.08, 0.6, 8]" />
+          <TresMeshStandardMaterial :color="'#f4f1e0'" :roughness="0.8" />
+        </TresMesh>
+        <!-- Zwei Knubbel oben -->
+        <TresMesh :position="[0, 0.3, 0.09]" cast-shadow>
+          <TresSphereGeometry :args="[0.12, 10, 10]" />
+          <TresMeshStandardMaterial :color="'#f4f1e0'" :roughness="0.8" />
+        </TresMesh>
+        <TresMesh :position="[0, 0.3, -0.09]" cast-shadow>
+          <TresSphereGeometry :args="[0.12, 10, 10]" />
+          <TresMeshStandardMaterial :color="'#f4f1e0'" :roughness="0.8" />
+        </TresMesh>
+        <!-- Zwei Knubbel unten -->
+        <TresMesh :position="[0, -0.3, 0.09]" cast-shadow>
+          <TresSphereGeometry :args="[0.12, 10, 10]" />
+          <TresMeshStandardMaterial :color="'#f4f1e0'" :roughness="0.8" />
+        </TresMesh>
+        <TresMesh :position="[0, -0.3, -0.09]" cast-shadow>
+          <TresSphereGeometry :args="[0.12, 10, 10]" />
+          <TresMeshStandardMaterial :color="'#f4f1e0'" :roughness="0.8" />
+        </TresMesh>
+      </TresGroup>
+
       <!-- Hindernisse/Rampe: glTF-Modelle (Collider bleibt separat) -->
       <TresGroup v-else :position="[laneX(e.lane), 0, e.z]">
-        <ObstacleModel :kind="e.kind" />
+        <ObstacleModel :kind="e.kind" :z="e.z" />
       </TresGroup>
     </template>
   </template>
 </template>
-

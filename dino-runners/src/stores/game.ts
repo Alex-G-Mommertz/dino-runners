@@ -3,6 +3,29 @@ import { ref } from 'vue'
 
 export type GameState = 'menu' | 'running' | 'gameover'
 
+// Auswählbares Spieler-Modell
+export type PlayerModel =
+  | 'human'
+  | 'trex'
+  | 'astronaut'
+  | 'zombie'
+  | 'haunter'
+  | 'unicorn'
+  | 'velociraptor'
+  | 'parasaurolophus'
+
+// Reihenfolge für das Durchschalten der Modelle
+const PLAYER_MODELS: PlayerModel[] = [
+  'human',
+  'trex',
+  'astronaut',
+  'zombie',
+  'haunter',
+  'unicorn',
+  'velociraptor',
+  'parasaurolophus',
+]
+
 // Start-Laufgeschwindigkeit in Welt-Einheiten pro Sekunde
 const BASE_SPEED = 8
 
@@ -26,6 +49,9 @@ export const useGameStore = defineStore('game', () => {
   const isGrounded = ref(true)
   // Sprung-Anforderung, wird im Physik-Loop verarbeitet
   const jumpRequested = ref(false)
+
+  // Gewähltes Spieler-Modell (Mensch oder T-Rex)
+  const playerModel = ref<PlayerModel>('human')
 
   function startGame() {
     state.value = 'running'
@@ -67,6 +93,16 @@ export const useGameStore = defineStore('game', () => {
     coins.value += amount
   }
 
+  // Wechselt zwischen Mensch- und T-Rex-Modell.
+  function setPlayerModel(model: PlayerModel) {
+    playerModel.value = model
+  }
+
+  function togglePlayerModel() {
+    const i = PLAYER_MODELS.indexOf(playerModel.value)
+    playerModel.value = PLAYER_MODELS[(i + 1) % PLAYER_MODELS.length] ?? 'human'
+  }
+
   return {
     state,
     score,
@@ -77,6 +113,7 @@ export const useGameStore = defineStore('game', () => {
     isDucking,
     isGrounded,
     jumpRequested,
+    playerModel,
     startGame,
     gameOver,
     moveLeft,
@@ -84,5 +121,7 @@ export const useGameStore = defineStore('game', () => {
     jump,
     duck,
     addCoin,
+    setPlayerModel,
+    togglePlayerModel,
   }
 })

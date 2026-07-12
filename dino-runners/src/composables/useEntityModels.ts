@@ -1,5 +1,5 @@
 import { computed, type ComputedRef } from 'vue'
-import type { Object3D } from 'three'
+import type { AnimationClip, Object3D } from 'three'
 import { useGLTF } from '@tresjs/cientos'
 
 /**
@@ -17,7 +17,16 @@ import { useGLTF } from '@tresjs/cientos'
 
 export type ModelKind = 'block' | 'bar' | 'ramp'
 
-type ModelMap = Record<ModelKind, ComputedRef<Object3D | null>>
+/**
+ * Ein geladenes Entitäts-Modell: die Szene (zum Klonen) und die im glTF
+ * enthaltenen Animations-Clips (z. B. Idle/Attack/Walk).
+ */
+export interface EntityModel {
+  scene: ComputedRef<Object3D | null>
+  animations: ComputedRef<AnimationClip[]>
+}
+
+type ModelMap = Record<ModelKind, EntityModel>
 
 let models: ModelMap | undefined
 
@@ -28,9 +37,18 @@ export function useEntityModels(): ModelMap {
     const diplo = useGLTF('/models/Diplodocus.glb')
 
     models = {
-      block: computed(() => tric.state.value?.scene ?? null),
-      bar: computed(() => trex.state.value?.scene ?? null),
-      ramp: computed(() => diplo.state.value?.scene ?? null),
+      block: {
+        scene: computed(() => tric.state.value?.scene ?? null),
+        animations: computed(() => tric.state.value?.animations ?? []),
+      },
+      bar: {
+        scene: computed(() => trex.state.value?.scene ?? null),
+        animations: computed(() => trex.state.value?.animations ?? []),
+      },
+      ramp: {
+        scene: computed(() => diplo.state.value?.scene ?? null),
+        animations: computed(() => diplo.state.value?.animations ?? []),
+      },
     }
   }
   return models

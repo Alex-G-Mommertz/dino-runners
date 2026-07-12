@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import { shallowRef, watchEffect } from 'vue'
-import { Box3, Vector3, type Object3D, type Mesh } from 'three'
+import { useLoop } from '@tresjs/core'
+import {
+  AnimationMixer,
+  Box3,
+  Vector3,
+  LoopRepeat,
+  type AnimationAction,
+  type Object3D,
+  type Mesh,
+} from 'three'
 import { clone as skeletonClone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { useEntityModels, type ModelKind } from '@/composables/useEntityModels'
 import { RAMP_RX, RAMP_RY, RAMP_RZ, type EntityKind } from '@/composables/useObstacles'
@@ -17,9 +26,13 @@ import { RAMP_RX, RAMP_RY, RAMP_RZ, type EntityKind } from '@/composables/useObs
  *   Der Collider/das Höhenfeld bleiben unberührt.
  */
 
-const props = defineProps<{ kind: EntityKind }>()
+const props = defineProps<{ kind: EntityKind; z: number }>()
 
 const models = useEntityModels()
+
+// Ab dieser Z-Position (näher an der Kamera als der Spawn) gilt das Modell als
+// "in Sichtweite" und beginnt seine Angriffs-/Leerlauf-Animation.
+const IN_VIEW_Z = -55
 
 interface FitConfig {
   mode: 'height' | 'box'
@@ -40,7 +53,19 @@ const CONFIG: Record<ModelKind, FitConfig> = {
 }
 
 const object = shallowRef<Object3D | null>(null)
-const cache = new Map<ModelKind, Object3D>()
+
+/**
+ * Gecachter Klon je Modell-Art inkl. eigenem AnimationMixer.
+ * Der Mixer wird nur weitergeschaltet, solange das Modell sichtbar ist.
+ */
+interface Slot {
+  object: Object3D
+  mixer: AnimationMixer | null
+  action: AnimationAction | null
+}
+
+const cache = new Map<ModelKind, Slot>()
+let current: Slot | null = null
 
 function fit(obj: Object3D, cfg: FitConfig) {
   obj.rotation.y = cfg.rotationY
@@ -79,28 +104,65 @@ function fit(obj: Object3D, cfg: FitConfig) {
 
 watchEffect(() => {
   const kind = props.kind
-  if (kind === 'coin') {
+  // Items ohne Modell (Coin/Knochen) werden separat als Primitive gerendert.
+  if (kind === 'coin' || kind === 'bone') {
     object.value = null
+    current = null
     return
   }
 
   const modelKind = kind as ModelKind
   const cached = cache.get(modelKind)
   if (cached) {
-    object.value = cached
+    current = cached
+    object.value = cached.object
     return
   }
 
-  const source = models[modelKind].value
+  const source = models[modelKind].scene.value
   if (!source) {
     object.value = null
+    current = null
     return
   }
 
   const clone = skeletonClone(source)
   fit(clone, CONFIG[modelKind])
-  cache.set(modelKind, clone)
+
+  // Animations-Clip auswählen: bevorzugt "Attack", sonst der erste Clip.
+  const clips = models[modelKind].animations.value
+  const clip = clips.find((c) => c.name.toLowerCase().includes('attack')) ?? clips[0] ?? null
+
+  let mixer: AnimationMixer | null = null
+  let action: AnimationAction | null = null
+  if (clip) {
+    mixer = new AnimationMixer(clone)
+    action = mixer.clipAction(clip)
+    action.setLoop(LoopRepeat, Infinity)
+  }
+
+  const slot: Slot = { object: clone, mixer, action }
+  cache.set(modelKind, slot)
+  current = slot
   object.value = clone
+})
+
+const { onBeforeRender } = useLoop()
+
+onBeforeRender(({ delta }) => {
+  const slot = current
+  if (!slot?.mixer || !slot.action) return
+
+  // Erst animieren, wenn das Modell in Sichtweite gelaufen ist.
+  const inView = props.z >= IN_VIEW_Z
+  if (inView) {
+    if (!slot.action.isRunning()) slot.action.play()
+    slot.mixer.update(delta)
+  } else if (slot.action.isRunning()) {
+    // Ausserhalb der Sicht in den Ruhezustand zurücksetzen.
+    slot.action.stop()
+    slot.mixer.setTime(0)
+  }
 })
 </script>
 

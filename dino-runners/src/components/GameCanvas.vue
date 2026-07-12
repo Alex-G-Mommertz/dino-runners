@@ -5,6 +5,7 @@ import Track from './Track.vue'
 import Obstacles from './Obstacles.vue'
 import Jungle from './Jungle.vue'
 import Ground from './Ground.vue'
+import Sky from './Sky.vue'
 
 /**
  * Die 3D-Welt (Canvas). Strikt getrennt vom UI-Layer.
@@ -20,6 +21,9 @@ import Ground from './Ground.vue'
 
     <TresAmbientLight :color="'#bfe6b0'" :intensity="0.7" />
     <TresDirectionalLight :position="[5, 10, 5]" :intensity="1" cast-shadow />
+
+    <!-- Dschungel-Himmel (Farbverlauf-Hintergrund) -->
+    <Sky />
 
     <!-- Dschungel-Boden -->
     <Ground />

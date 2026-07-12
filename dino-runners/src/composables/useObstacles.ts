@@ -13,12 +13,13 @@ import { useGameStore } from '@/stores/game'
  *
  * Entitäts-Arten:
  * - 'coin':  Item, wird beim Berühren eingesammelt (+1 Coin).
+ * - 'bone':  seltenes Item, gibt beim Einsammeln +10 Coins.
  * - 'block': Boden-Hindernis, muss übersprungen oder umfahren werden.
  * - 'bar':   Überkopf-Balken, muss unterrollt (Ducken) oder umfahren werden.
  * - 'ramp':  begehbarer Hügel; hebt die Spielerhöhe an (hochlaufen), tötet nicht.
  */
 
-export type EntityKind = 'coin' | 'block' | 'bar' | 'ramp'
+export type EntityKind = 'coin' | 'bone' | 'block' | 'bar' | 'ramp'
 
 export interface Entity {
   id: number
@@ -72,7 +73,7 @@ function spawn() {
   e.active = true
   e.lane = Math.floor(Math.random() * 3) - 1
   const r = Math.random()
-  e.kind = r < 0.35 ? 'coin' : r < 0.55 ? 'block' : r < 0.72 ? 'bar' : 'ramp'
+  e.kind = r < 0.3 ? 'coin' : r < 0.4 ? 'bone' : r < 0.58 ? 'block' : r < 0.74 ? 'bar' : 'ramp'
   e.z = SPAWN_Z
 }
 
@@ -142,6 +143,10 @@ function update(delta: number) {
       case 'coin':
         e.active = false
         game.addCoin()
+        break
+      case 'bone':
+        e.active = false
+        game.addCoin(10)
         break
       case 'block':
         // Nur durch ausreichend hohen Sprung passierbar
